@@ -1,0 +1,16 @@
+video-concept 0
+course-video 1
+course-concept 2
+school-course 3
+teacher-course 4
+school-teacher 5
+concept-field_concept 6
+s_concept-e_concept 7
+s_concept-p_concept 8
+course-course_node 9
+video-video_node 10
+concept-concept_node 11
+teacher-teacher_node 12
+school-school_node 13
+s_video_id-e_video_id 14
+s_video_id-e_video_id-user_action 15

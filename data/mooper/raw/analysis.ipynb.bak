@@ -1,0 +1,696 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 105,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import warnings\n",
+    "import pickle as pkl\n",
+    "from tqdm import tqdm\n",
+    "from collections import Counter\n",
+    "\n",
+    "warnings.filterwarnings('ignore')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 106,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "is_save = True"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "user action"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 107,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "2532524"
+      ]
+     },
+     "execution_count": 107,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "user_action_df = pd.read_csv('./interaction/challenge_interaction.csv', sep=',')\n",
+    "user_action_df = user_action_df[['user_id', 'challenge_id', 'open_time']]\n",
+    "len(user_action_df)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 108,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "exe_chge = pd.read_csv('./knowledgeGraph/relation/exercise_challenge.csv', sep=',')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 109,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "2532524"
+      ]
+     },
+     "execution_count": 109,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "user_action = pd.merge(user_action_df, exe_chge, on=['challenge_id'])\n",
+    "len(user_action)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 110,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "user_action_df = user_action.drop_duplicates(['user_id', 'exercise_id'], keep='first')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 111,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "(44523, 1127)"
+      ]
+     },
+     "execution_count": 111,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "user_counter = Counter(user_action_df['user_id'])\n",
+    "selected_user_set = set(dict(filter(lambda x: x[1] >= 4, user_counter.items())).keys())\n",
+    "\n",
+    "exe_counter = Counter(user_action_df['exercise_id'])\n",
+    "selected_exe_set = set(dict(filter(lambda x: x[1] >= 4, exe_counter.items())).keys())\n",
+    "\n",
+    "len(selected_user_set), len(selected_exe_set)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 112,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "641744"
+      ]
+     },
+     "execution_count": 112,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "selected_user_action_df = user_action_df[user_action_df['exercise_id'].isin(selected_exe_set) &\n",
+    "                                         user_action_df['user_id'].isin(selected_user_set)]\n",
+    "len(selected_user_action_df)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 113,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "selected_user_set = set(selected_user_action_df['user_id'])\n",
+    "selected_exe_set = set(selected_user_action_df['exercise_id'])\n",
+    "selected_chge_set = set(user_action[user_action['user_id'].isin(selected_user_set) & \\\n",
+    "                                    user_action['exercise_id'].isin(selected_exe_set)]['challenge_id'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 114,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "14.413763672708487"
+      ]
+     },
+     "execution_count": 114,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(selected_user_action_df[['user_id', 'exercise_id']].drop_duplicates()) / len(selected_user_set)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 115,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "selected_exe_chge = exe_chge[exe_chge['exercise_id'].isin(selected_exe_set) & \\\n",
+    "                             exe_chge['challenge_id'].isin(selected_chge_set)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 116,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# discipline and sub_discipline\n",
+    "\n",
+    "dpl_exe = pd.read_csv('./knowledgeGraph/relation/discipline_exercise.csv', sep=',')\n",
+    "dpl_exe.columns = ['exercise_id', 'sub_discipline_id', 'create_at']\n",
+    "selected_sub_dpl_exe = dpl_exe[dpl_exe['exercise_id'].isin(selected_exe_set)]\n",
+    "selected_sub_dpl_set = set(selected_sub_dpl_exe['sub_discipline_id'])\n",
+    "\n",
+    "sub_dpl = pd.read_csv('./knowledgeGraph/relation/sub_discipline.csv', sep=',')\n",
+    "selected_sub_dpl_dpl = sub_dpl[sub_dpl['sub_discipline_id'].isin(selected_sub_dpl_set)]\n",
+    "selected_dpl_set = set(selected_sub_dpl_dpl['discipline_id'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 117,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# exercise-teacher\n",
+    "exe_teacher = pd.read_csv('./knowledgeGraph/relation/exercise_teacher.csv', sep=',')\n",
+    "selected_exe_teacher = exe_teacher[exe_teacher['exercise_id'].isin(selected_exe_set)]\n",
+    "selected_exe_teacher.columns = ['exercise_id', 'teacher_id']\n",
+    "\n",
+    "selected_teacher_set = set(selected_exe_teacher['teacher_id'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 118,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# student-institution\n",
+    "stu_ins = pd.read_csv('./knowledgeGraph/relation/student_institution.csv', sep=',')\n",
+    "\n",
+    "selected_stu_ins = stu_ins[stu_ins['student_id'].isin(selected_user_set)]\n",
+    "selected_stu_ins[['school_id']] = selected_stu_ins[['school_id']].fillna(max(selected_stu_ins['school_id']) + 1)\n",
+    "selected_stu_ins[['school_id']] = selected_stu_ins[['school_id']].astype(int)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 119,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# teacher-institution\n",
+    "teacher_ins = pd.read_csv('./knowledgeGraph/relation/teacher_institution.csv', sep=',')\n",
+    "selected_teacher_ins = teacher_ins[teacher_ins['teacher_id'].isin(selected_teacher_set)]\n",
+    "selected_teacher_ins[['school_id']] = selected_teacher_ins[['school_id']].fillna(max(selected_teacher_ins['school_id']) + 1)\n",
+    "selected_teacher_ins[['school_id']] = selected_teacher_ins[['school_id']].astype(int)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 120,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "selected_school_set = set(set(selected_stu_ins['school_id']) | set(selected_teacher_ins['school_id']))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 121,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# challenge-teacher\n",
+    "chge_teacher = pd.read_csv('./knowledgeGraph/relation/challenge_teacher.csv', sep=',')\n",
+    "chge_teacher.columns = ['challenge_id', 'teacher_id']\n",
+    "selected_chge_teacher = chge_teacher[chge_teacher['challenge_id'].isin(selected_chge_set) & \\\n",
+    "                                     chge_teacher['teacher_id'].isin(selected_teacher_set)]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 122,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# challenge-topic\n",
+    "chge_topic = pd.read_csv('./knowledgeGraph/relation/challenge_topic.csv', sep=',')\n",
+    "selected_chge_topic = chge_topic[chge_topic['challenge_id'].isin(selected_chge_set)]\n",
+    "\n",
+    "selected_topic_set = set(selected_chge_topic['topic_id'])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 123,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "n_user: 44523\n",
+      "n_exercise: 1127\n",
+      "n_discipline: 13\n",
+      "n_sub_discipline: 58\n",
+      "n_challenge: 3803\n",
+      "n_topic: 3050\n",
+      "n_teacher: 142\n",
+      "n_school: 1168\n",
+      "n_user_challenge: 641744\n",
+      "n_user_exercise: 641744\n",
+      "n_challenge_teacher: 3670\n",
+      "n_challenge_topic: 8065\n",
+      "n_exercise_sub_discipline: 2749\n",
+      "n_exercise_challenge: 3803\n",
+      "n_exercise_teacher: 1127\n",
+      "n_student_school: 44524\n",
+      "n_discipline_sub_discipline: 58\n",
+      "n_teacher_school: 142\n"
+     ]
+    }
+   ],
+   "source": [
+    "print('n_user:', len(selected_user_set))\n",
+    "print('n_exercise:', len(selected_exe_set))\n",
+    "print('n_discipline:', len(selected_dpl_set))\n",
+    "print('n_sub_discipline:', len(selected_sub_dpl_set))\n",
+    "print('n_challenge:', len(selected_chge_set))\n",
+    "print('n_topic:', len(selected_topic_set))\n",
+    "print('n_teacher:', len(selected_teacher_set))\n",
+    "print('n_school:', len(selected_school_set))\n",
+    "\n",
+    "print('n_user_challenge:', len(selected_user_action_df))\n",
+    "print('n_user_exercise:', len(selected_user_action_df[['user_id', 'exercise_id']].drop_duplicates(keep='first')))\n",
+    "print('n_challenge_teacher:', len(selected_chge_teacher))\n",
+    "print('n_challenge_topic:', len(selected_chge_topic))\n",
+    "print('n_exercise_sub_discipline:', len(selected_sub_dpl_exe))\n",
+    "print('n_exercise_challenge:', len(selected_exe_chge))\n",
+    "print('n_exercise_teacher:', len(selected_exe_teacher))\n",
+    "print('n_student_school:', len(selected_stu_ins))\n",
+    "print('n_discipline_sub_discipline:', len(selected_sub_dpl_dpl))\n",
+    "print('n_teacher_school:', len(selected_teacher_ins))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "encoding"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 124,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def data2txt(data, path):\n",
+    "    with open(path, 'w') as f:\n",
+    "        for line in data:\n",
+    "            line_str = ' '.join(str(x) for x in line) + '\\n'\n",
+    "            f.write(line_str)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 125,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "user_id_map = [['org_user_id', 'new_user_id']]\n",
+    "user_id_dict = {}\n",
+    "id = 0\n",
+    "for u in selected_user_set:\n",
+    "    user_id_map.append([u, id])\n",
+    "    user_id_dict[u] = id\n",
+    "    id += 1\n",
+    "\n",
+    "if is_save:\n",
+    "    data2txt(user_id_map, '../user_list.txt')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 126,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "video_id_map = [['org_video_id', 'new_video_id']]\n",
+    "entity_id_dict = {}\n",
+    "video_id_dict = {}\n",
+    "\n",
+    "id = 0\n",
+    "for v in selected_exe_set:\n",
+    "    video_id_map.append([v, id])\n",
+    "    entity_id_dict[v] = id\n",
+    "    video_id_dict[v] = id\n",
+    "    id += 1\n",
+    "\n",
+    "if is_save:\n",
+    "    data2txt(video_id_map, '../video_list.txt')\n",
+    "\n",
+    "entity_id_map = [['org_entity_id', 'new_entity_id']]\n",
+    "entity_id_map += video_id_map[1:]\n",
+    "\n",
+    "dpl_id_dict = {}\n",
+    "for dpl in selected_dpl_set:\n",
+    "    entity_id_map.append([dpl, id])\n",
+    "    entity_id_dict[dpl] = id\n",
+    "    dpl_id_dict[dpl] = id\n",
+    "    id += 1\n",
+    "\n",
+    "sub_dpl_id_dict = {}\n",
+    "for sub_dpl in selected_sub_dpl_set:\n",
+    "    entity_id_map.append([sub_dpl, id])\n",
+    "    entity_id_dict[sub_dpl] = id\n",
+    "    sub_dpl_id_dict[sub_dpl] = id\n",
+    "    id += 1\n",
+    "\n",
+    "chge_id_dict = {}\n",
+    "for chge in selected_chge_set:\n",
+    "    entity_id_map.append([chge, id])\n",
+    "    entity_id_dict[chge] = id\n",
+    "    chge_id_dict[chge] = id\n",
+    "    id += 1\n",
+    "\n",
+    "topic_id_dict = {}\n",
+    "for topic in selected_topic_set:\n",
+    "    entity_id_map.append([topic, id])\n",
+    "    entity_id_dict[topic] = id\n",
+    "    topic_id_dict[topic] = id\n",
+    "    id += 1\n",
+    "\n",
+    "teacher_id_dict = {}\n",
+    "for teacher in selected_teacher_set:\n",
+    "    entity_id_map.append([teacher, id])\n",
+    "    entity_id_dict[teacher] = id\n",
+    "    teacher_id_dict[teacher] = id\n",
+    "    id += 1\n",
+    "\n",
+    "school_id_dict = {}\n",
+    "for school in selected_school_set:\n",
+    "    entity_id_map.append([school, id])\n",
+    "    entity_id_dict[school] = id\n",
+    "    school_id_dict[school] = id\n",
+    "    id += 1\n",
+    "\n",
+    "if is_save:\n",
+    "    data2txt(entity_id_map, '../entity_list.txt')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "knowledge graph"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 127,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "kg = []\n",
+    "r_id = 0\n",
+    "relation_list = []\n",
+    "\n",
+    "selected_chge_teacher['new_challenge_id'] = selected_chge_teacher['challenge_id'].map(chge_id_dict)\n",
+    "selected_chge_teacher['new_teacher_id'] = selected_chge_teacher['teacher_id'].map(teacher_id_dict)\n",
+    "selected_chge_teacher['relation'] = r_id\n",
+    "kg = selected_chge_teacher[['new_challenge_id', 'relation', 'new_teacher_id']].values\n",
+    "relation_list.append(['challenge-teacher', r_id])\n",
+    "\n",
+    "r_id += 1\n",
+    "selected_chge_topic['new_challenge_id'] = selected_chge_topic['challenge_id'].map(chge_id_dict)\n",
+    "selected_chge_topic['new_topic_id'] = selected_chge_topic['topic_id'].map(topic_id_dict)\n",
+    "selected_chge_topic['relation'] = r_id\n",
+    "kg = np.concatenate([kg, selected_chge_topic[['new_challenge_id', 'relation', 'new_topic_id']].values])\n",
+    "relation_list.append(['challenge-topic', r_id])\n",
+    "\n",
+    "r_id += 1\n",
+    "selected_sub_dpl_exe['new_sub_discipline_id'] = selected_sub_dpl_exe['sub_discipline_id'].map(sub_dpl_id_dict)\n",
+    "selected_sub_dpl_exe['new_exercise_id'] = selected_sub_dpl_exe['exercise_id'].map(video_id_dict)\n",
+    "selected_sub_dpl_exe['relation'] = r_id\n",
+    "kg = np.concatenate([kg, selected_sub_dpl_exe[['new_exercise_id', 'relation', 'new_sub_discipline_id']].values])\n",
+    "relation_list.append(['sub_discipline-exercise', r_id])\n",
+    "\n",
+    "r_id += 1\n",
+    "selected_exe_chge['new_exercise_id'] = selected_exe_chge['exercise_id'].map(video_id_dict)\n",
+    "selected_exe_chge['new_challenge_id'] = selected_exe_chge['challenge_id'].map(chge_id_dict)\n",
+    "selected_exe_chge['relation'] = r_id\n",
+    "kg = np.concatenate([kg, selected_exe_chge[['new_exercise_id', 'relation', 'new_challenge_id']].values])\n",
+    "relation_list.append(['exercise-challenge', r_id])\n",
+    "\n",
+    "r_id += 1\n",
+    "selected_exe_teacher['new_exercise_id'] = selected_exe_teacher['exercise_id'].map(video_id_dict)\n",
+    "selected_exe_teacher['new_teacher_id'] = selected_exe_teacher['teacher_id'].map(teacher_id_dict)\n",
+    "selected_exe_teacher['relation'] = r_id\n",
+    "kg = np.concatenate([kg, selected_exe_teacher[['new_exercise_id', 'relation', 'new_teacher_id']].values])\n",
+    "relation_list.append(['exercise-teacher', r_id])\n",
+    "\n",
+    "# r_id += 1\n",
+    "# selected_stu_ins['new_student_id'] = selected_stu_ins['student_id'].map(user_id_dict)\n",
+    "# selected_stu_ins['new_school_id'] = selected_stu_ins['school_id'].map(school_id_dict)\n",
+    "# selected_stu_ins['relation'] = r_id\n",
+    "# kg = np.concatenate([kg, selected_stu_ins[['new_student_id', 'relation', 'new_school_id']].values])\n",
+    "# relation_list.append(['student-school', r_id])\n",
+    "\n",
+    "r_id += 1\n",
+    "selected_sub_dpl_dpl['new_sub_discipline_id'] = selected_sub_dpl_dpl['sub_discipline_id'].map(sub_dpl_id_dict)\n",
+    "selected_sub_dpl_dpl['new_discipline_id'] = selected_sub_dpl_dpl['discipline_id'].map(dpl_id_dict)\n",
+    "selected_sub_dpl_dpl['relation'] = r_id\n",
+    "kg = np.concatenate([kg, selected_sub_dpl_dpl[['new_sub_discipline_id', 'relation', 'new_discipline_id']].values])\n",
+    "relation_list.append(['sub_discipline-discipline', r_id])\n",
+    "\n",
+    "r_id += 1\n",
+    "selected_teacher_ins['new_teacher_id'] = selected_teacher_ins['teacher_id'].map(teacher_id_dict)\n",
+    "selected_teacher_ins['new_school_id'] = selected_teacher_ins['school_id'].map(school_id_dict)\n",
+    "selected_teacher_ins['relation'] = r_id\n",
+    "kg = np.concatenate([kg, selected_teacher_ins[['new_teacher_id', 'relation', 'new_school_id']].values])\n",
+    "relation_list.append(['teacher-school', r_id])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 128,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# selected_user_action_df['new_user_id'] = selected_user_action_df['user_id'].map(user_id_dict)\n",
+    "# selected_user_action_df['new_video_id'] = selected_user_action_df['exercise_id'].map(video_id_dict)\n",
+    "# selected_user_action_df.sort_values(by='open_time', inplace=True)\n",
+    "\n",
+    "# selected_user_videos_dict = dict(selected_user_action_df[['new_user_id','new_video_id']]\\\n",
+    "#                                 .groupby('new_user_id')['new_video_id']\\\n",
+    "#                                 .apply(list))\n",
+    "# selected_video_video_ua = []\n",
+    "# for videos in selected_user_videos_dict.values():\n",
+    "#     selected_video_video_ua.extend(np.column_stack((videos[:-2], videos[1:-1])))\n",
+    "# selected_ua_df = pd.DataFrame(selected_video_video_ua, columns=['s_video_id', 'e_video_id'])\n",
+    "\n",
+    "# # the orders between user action videos\n",
+    "# r_id += 1\n",
+    "# selected_ua_df['relation'] = r_id\n",
+    "# kg = np.concatenate([kg, selected_ua_df[['s_video_id', 'relation', 'e_video_id']]])\n",
+    "# relation_list.append(['s_video_id-e_video_id-user_action', r_id])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 129,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "course_exe = pd.read_csv('./knowledgeGraph/relation/exercise_course.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 130,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "selected_course_exe = course_exe[course_exe['exercise_id'].isin(selected_exe_set)].drop_duplicates(\"exercise_id\", keep='first')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 131,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "selected_course_exe_g = selected_course_exe.groupby('course_id').agg({'exercise_id': list}).reset_index()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 132,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "exe_exe_pair_list = []\n",
+    "\n",
+    "for _, line in selected_course_exe_g.iterrows():\n",
+    "    exes = line[1]\n",
+    "    exes_encoder = list(map(lambda x : video_id_dict[x], exes))\n",
+    "\n",
+    "    selected_exe_start = exes_encoder[:-1]\n",
+    "    selected_exe_end = exes_encoder[1:]\n",
+    "    selected_exe_exe_map = np.column_stack((selected_exe_start, selected_exe_end))\n",
+    "    \n",
+    "    exe_exe_pair_list.extend(selected_exe_exe_map)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 133,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "exe_sub_dpl_dict = selected_sub_dpl_exe.set_index(['new_exercise_id'])['new_sub_discipline_id'].to_dict()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 134,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "144"
+      ]
+     },
+     "execution_count": 134,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "len(set(video_id_dict.values()) - set(exe_sub_dpl_dict.keys()))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 135,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if is_save:\n",
+    "    data2txt(kg, '../kg_final.txt')\n",
+    "    data2txt(relation_list, '../relation_list.txt')\n",
+    "    data2txt(exe_exe_pair_list, '../video_video_list.txt')\n",
+    "\n",
+    "    with open('../video_course_dict.pkl', 'wb') as f:\n",
+    "        pkl.dump(exe_sub_dpl_dict, f)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 136,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "100%|██████████| 44523/44523 [00:00<00:00, 180978.82it/s]\n"
+     ]
+    }
+   ],
+   "source": [
+    "train_data = []\n",
+    "test_data = []\n",
+    "\n",
+    "for user, videos in tqdm(selected_user_videos_dict.items()):\n",
+    "    # train_len = int(len(videos) * 0.8)\n",
+    "    # test_len = len(videos) - train_len\n",
+    "    # train_candidates = random.sample(videos, train_len)\n",
+    "    # test_candidates = list(filter(lambda x: x not in train_candidates, videos))\n",
+    "    train_data.append([user] + videos[:-1])\n",
+    "    test_data.append([user] + videos)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 137,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if is_save:\n",
+    "    data2txt(train_data, '../train.txt')\n",
+    "    data2txt(test_data, '../test.txt')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "interpreter": {
+   "hash": "e23b9fd490f0da22a907a453249c28c5cc4ec139e8bec43c1f95caa512fe986a"
+  },
+  "kernelspec": {
+   "display_name": "Python 3.7.5 64-bit ('competition': conda)",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.11"
+  },
+  "orig_nbformat": 4
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

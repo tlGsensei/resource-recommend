@@ -1,0 +1,7 @@
+challenge-teacher 0
+challenge-topic 1
+sub_discipline-exercise 2
+exercise-challenge 3
+exercise-teacher 4
+sub_discipline-discipline 5
+teacher-school 6

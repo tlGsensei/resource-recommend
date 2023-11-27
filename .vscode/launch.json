@@ -1,0 +1,39 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "main.py",
+            "type": "python",
+            "request": "launch",
+            "program": "main.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "/opt/conda/envs/torch1.9/bin/python3.8",
+            "args": [
+                "--dataset", "mooper_new",
+                "--dim", "64", 
+                "--lr", "0.0001",
+                "--sim_regularity", "0.00001",
+                "--batch_size", "512",
+                "--node_dropout", "True",
+                "--node_dropout_rate", "0.5",
+                "--mess_dropout", "True",
+                "--mess_dropout_rate", "0.1",
+                "--gpu_id", "3",
+                "--context_hops", "3"
+            ]
+        },
+        {
+            "name": "app.py",
+            "type": "python",
+            "request": "launch",
+            "program": "app.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "/opt/conda/envs/torch1.9/bin/python3.8"
+        }
+    ]
+}
