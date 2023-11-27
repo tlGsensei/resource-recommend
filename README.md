@@ -1,4 +1,3 @@
-[toc]
 ## 代码环境
 The code has been tested running under Python 3.8.11. The required packages are as follows:
 
@@ -7,5 +6,6 @@ The code has been tested running under Python 3.8.11. The required packages are 
 
 ### 算法代码
 
-```bash ./run.sh
+```
+bash ./run.sh
 ```
