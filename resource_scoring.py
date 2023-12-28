@@ -8,7 +8,7 @@ import openpyxl.utils.exceptions as excel_exceptions
 # resource.to_csv('resource.csv', index=False)
 # csv文件的读取速度更快
 resource = pd.read_csv('resource.csv')
-columns = ['资源ID', '资源质量', '适用学段', '适用学科', '浏览量', '创建时间']
+columns = ['资源ID', '资源标题', '资源质量', '适用学段', '适用学科', '适用年级', '适用章节', '浏览量', '创建时间']
 # 筛选列
 filtered_resource = resource[columns]
 
