@@ -17,3 +17,14 @@ bash ./run.sh
 ```
 python get_source_similarity.py
 ```
+
+### 备课中心协同备课教师推荐代码
+
+```
+python teacher_partner.py
+```
+
+### 检课中心资源推荐代码
+```
+python jianke.py
+```
