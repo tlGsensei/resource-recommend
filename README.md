@@ -26,5 +26,6 @@ python teacher_partner.py
 
 ### 检课中心资源推荐代码
 ```
+python jianke_match.py
 python jianke.py
 ```
