@@ -6,7 +6,7 @@ The code has been tested running under Python 3.8.11. The required packages are 
 - transformers == 4.36.2
 - torch == 1.9.0
 
-### 首页资源推荐算法代码
+### 首页资源推荐算法代码(0414更新)
 
 ```
 bash ./run.sh
@@ -36,4 +36,9 @@ python jianke.py
 ### 资源中心资源推荐代码
 ```
 resource_recommend.py
+```
+
+### 个人主页社区推荐(0414更新)
+```
+community_recommend.py
 ```

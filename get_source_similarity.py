@@ -83,17 +83,15 @@ model_name = "bert-base-chinese"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertModel.from_pretrained(model_name)
 
-for resource in matching_resources:
+top_100 = matching_resources[:100]
+for resource in top_100:
     resource_title = resource[1]  # 假设第二列是资源标题
     similarity = get_bert_similarity(resource_title, topic, model, tokenizer)
     resource.append(similarity)
 
 # 首先，根据相似度（假设为每个子列表的第四个元素）选取前30个最高相似度的行
-top_30_similar = sorted(matching_resources, key=lambda x: x[3], reverse=True)[:30]
+top_30_similar = sorted(top_100, key=lambda x: x[3], reverse=True)[:30]
 
-# 然后，在这30个行中根据第三列（假设为综合评分）进行降序排序
-sorted_top_30 = sorted(top_30_similar, key=lambda x: x[2], reverse=True)
-
-print(sorted_top_30)
+print(top_30_similar)
 pass
 
