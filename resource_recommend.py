@@ -41,8 +41,8 @@ def calculate_similarity_and_update_score(row, resource_new):
     id0_embedding = get_bert_embeddings(id0_title, model, tokenizer)
 
     # 如果resource_new的长度超过100，则随机选择100个条目
-    if len(resource_new) > 200:
-        resource_new = resource_new.sample(n=200)
+    if len(resource_new) > 100:
+        resource_new = resource_new.sample(n=100)
 
     similarities = []
     for index, resource_row in tqdm(resource_new.iterrows(), total=len(resource_new)):
@@ -60,7 +60,7 @@ def calculate_similarity_and_update_score(row, resource_new):
 resource = pd.read_csv('score.csv')
 
 # 当前资源ID
-id0 = "51442125b3d64252bd5920c6f42b3361"
+id0 = "b4f673be97ae445ab19cc9ba1010e4f6"
 
 # 查找与当前资源ID匹配的学段和学科
 row = resource.loc[resource['资源ID'] == id0]
@@ -90,5 +90,3 @@ if not row.empty:
 
 else:
     print("Error")
-
-pass
