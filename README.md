@@ -6,7 +6,7 @@ The code has been tested running under Python 3.8.11. The required packages are 
 - transformers == 4.36.2
 - torch == 1.9.0
 
-### 首页资源推荐算法代码(0414更新)
+### 首页资源推荐算法代码
 
 ```
 bash ./run.sh
