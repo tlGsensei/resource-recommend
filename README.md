@@ -11,6 +11,11 @@ The code has been tested running under Python 3.8.11. The required packages are 
 ```
 bash ./run.sh
 ```
+非首次运行可直接运行：
+```
+python query.py --user_ID {ID}
+```
+
 
 ### 备课中心资源推荐算法代码
 
