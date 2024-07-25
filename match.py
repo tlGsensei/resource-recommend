@@ -49,4 +49,3 @@ for teacher_id, teacher_row in user.iterrows():
 
 teacher_resources_df = pd.DataFrame.from_dict(teacher_resources, orient='index')
 teacher_resources_df.to_csv('teacher_resources.csv', encoding='utf-8-sig', index=False)
-pass

@@ -6,13 +6,29 @@ The code has been tested running under Python 3.8.11. The required packages are 
 - transformers == 4.36.2
 - torch == 1.9.0
 
-### 首页资源推荐算法代码(0414修改)
+### 个人主页资源推荐（202407更新）
+首次使用生成匹配表（这一步是对数据集的预处理，不需要针对每个用户都重新运行）：
 ```
 bash ./run.sh
 ```
-非首次运行可直接运行：
+生成匹配表后，可直接运行：
 ```
 python query.py --user_ID {ID}
+```
+
+### 个人主页同伴推荐（202407更新）
+对数据集的预处理，不需要针对每个用户都重新运行:
+```
+python user_partner_preprocess.py
+```
+预处理后，可直接运行：
+```
+python user_partner.py
+```
+
+### 个人主页社区推荐
+```
+python community_recommend.py
 ```
 
 ### 备课中心资源推荐算法代码
@@ -41,7 +57,3 @@ python jianke.py
 resource_recommend.py
 ```
 
-### 个人主页社区推荐(0414更新)
-```
-community_recommend.py
-```
