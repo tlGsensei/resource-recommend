@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 # 加载预训练的中文 BERT 模型和 tokenizer
-model_name = "bert-base-chinese"
+model_name = "TinyBERT_General_4L_312D"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertModel.from_pretrained(model_name)
 
@@ -60,7 +60,7 @@ def calculate_similarity_and_update_score(row, resource_new):
 resource = pd.read_csv('score.csv')
 
 # 当前资源ID
-id0 = "b4f673be97ae445ab19cc9ba1010e4f6"
+id0 = "148f5b8cfd8743359cc7014e1c068030"
 
 # 查找与当前资源ID匹配的学段和学科
 row = resource.loc[resource['资源ID'] == id0]

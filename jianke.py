@@ -8,17 +8,17 @@ import re
 
 resource_new = pd.read_excel('updated_resource_new.xlsx')
 
-# x0 = "课堂导入"
-# x1 = "语文"
-# x2 = "小学"   # 输入1-12或小学/初中/高中/通用/其他
-# x3 = "通用"
-# x4 = "学科教学导入四法"
-
 x0 = "课堂导入"
-x1 = "数学"
-x2 = "初中"   # 输入1-12或小学/初中/高中/通用/其他
+x1 = "语文"
+x2 = "小学"   # 输入1-12或小学/初中/高中/通用/其他
 x3 = "通用"
-x4 = "巧借现代信息技术构建数学高效课堂"
+x4 = "学科教学导入四法"
+
+# x0 = "课堂导入"
+# x1 = "数学"
+# x2 = "初中"   # 输入1-12或小学/初中/高中/通用/其他
+# x3 = "通用"
+# x4 = "巧借现代信息技术构建数学高效课堂"
 
 def get_bert_embeddings(sentence, model, tokenizer):
     # 使用 BERT tokenizer 对句子进行标记
@@ -92,7 +92,7 @@ resource_filtered = resource_filtered[(resource_filtered['匹配结果'] == True
 
 
 # 加载预训练的中文 BERT 模型和 tokenizer
-model_name = "bert-base-chinese"
+model_name = "TinyBERT_General_4L_312D"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertModel.from_pretrained(model_name)
 resource_filtered_list = resource_filtered.values.tolist()
